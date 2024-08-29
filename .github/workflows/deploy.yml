@@ -5,18 +5,36 @@ on:
   pull_request:
     branches: main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  generate-token:
+  print-jwt:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify environment variables
-        run: |
-          echo "ACTIONS_ID_TOKEN_REQUEST_URL: $ACTIONS_ID_TOKEN_REQUEST_URL"
-          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN: $ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Get the OIDC token
+      - name: Retrieve OIDC Token
         id: oidc-token
         run: |
+          # Request the OIDC token
           OIDC_TOKEN=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
               "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value')
+          
+          # Print the OIDC token to the console
+          echo "OIDC Token: $OIDC_TOKEN"
+          
+          # Optionally, export it as an environment variable for further use
           echo "OIDC_TOKEN=$OIDC_TOKEN" >> $GITHUB_ENV
+
+      - name: Validate OIDC Token
+        run: |
+          # Ensure the token is not empty
+          if [ -z "$OIDC_TOKEN" ]; then
+            echo "Error: OIDC token is empty!"
+            exit 1
+          else
+            echo "OIDC token successfully retrieved and validated."
+          fi
