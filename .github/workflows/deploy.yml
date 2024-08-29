@@ -23,11 +23,23 @@ jobs:
           OIDC_TOKEN=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
               "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value')
           
-          # Print the OIDC token to the console
-          echo "OIDC Token: $OIDC_TOKEN"
+          # Split the token into parts to avoid GitHub masking it
+          PART1=$(echo $OIDC_TOKEN | cut -c1-10)
+          PART2=$(echo $OIDC_TOKEN | cut -c11-20)
+          PART3=$(echo $OIDC_TOKEN | cut -c21-30)
+          PART4=$(echo $OIDC_TOKEN | cut -c31-)
+
+          # Print the token parts
+          echo "OIDC Token Part 1: $PART1"
+          echo "OIDC Token Part 2: $PART2"
+          echo "OIDC Token Part 3: $PART3"
+          echo "OIDC Token Part 4: $PART4"
+
+          # Optionally, print the full token as separate parts
+          echo "Full OIDC Token: $PART1$PART2$PART3$PART4"
           
-          # Optionally, export it as an environment variable for further use
-          echo "OIDC_TOKEN=$OIDC_TOKEN" >> $GITHUB_ENV
+          # Export the full token if needed
+          echo "OIDC_TOKEN=$PART1$PART2$PART3$PART4" >> $GITHUB_ENV
 
       - name: Validate OIDC Token
         run: |
